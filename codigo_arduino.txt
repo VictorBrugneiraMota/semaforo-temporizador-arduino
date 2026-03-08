@@ -1,0 +1,150 @@
+// Project 4 - Interactive Traffic Lights
+//entradas placa
+int carRed = 11;
+int carYellow = 12;
+int carGreen = 13;
+
+int pedRed = 9;
+int pedGreen = 10;
+
+int button = 2;
+int buzzer = 8;
+
+int crossTime = 5000;
+unsigned long changeTime;
+
+
+// DISPLAY 7 SEGMENTOS
+int a = 7;
+int b = 6;
+int c = 5;
+int d = 4;
+int e = 3;
+int f = A1;
+int g = A0;
+
+const int segmentos[7] = {a, b, c, d, e, f, g};
+
+const byte digitos[6][7] = {
+  {1,1,1,1,1,1,0}, // 0
+  {0,1,1,0,0,0,0}, // 1
+  {1,1,0,1,1,0,1}, // 2
+  {1,1,1,1,0,0,1}, // 3
+  {0,1,1,0,0,1,1}, // 4
+  {1,0,1,1,0,1,1}  // 5
+};
+
+
+// SETUP
+void setup() {
+
+  //Semáforo e dispositivos
+  pinMode(carRed, OUTPUT);
+  pinMode(carYellow, OUTPUT);
+  pinMode(carGreen, OUTPUT);
+  pinMode(pedRed, OUTPUT);
+  pinMode(pedGreen, OUTPUT);
+  pinMode(buzzer, OUTPUT);
+  pinMode(button, INPUT);
+  for(int i = 0; i < 7; i++){
+    pinMode(segmentos[i], OUTPUT);
+  }
+  
+  digitalWrite(carGreen, HIGH);
+  digitalWrite(pedRed, HIGH);
+
+  
+}
+
+// LOOP
+void loop() {
+
+  int state = digitalRead(button);
+
+  if (state == HIGH && (millis() - changeTime) > 5000) {
+    changeLights();
+  }
+}
+
+// FUNÇÃO DO SEMÁFORO
+void changeLights() {
+
+  digitalWrite(carGreen, LOW);
+  digitalWrite(carYellow, HIGH);
+  delay(2000);
+
+  digitalWrite(carYellow, LOW);
+  digitalWrite(carRed, HIGH);
+  delay(1000);
+
+  digitalWrite(pedRed, LOW);
+  digitalWrite(pedGreen, HIGH);
+
+  tone(buzzer, 500);
+
+  contagemRegressiva();  // chama o display aqui
+
+  noTone(buzzer);
+
+  digitalWrite(pedGreen, LOW);
+  digitalWrite(pedRed, HIGH);
+  delay(500);
+
+  digitalWrite(carRed, LOW);
+  digitalWrite(carGreen, HIGH);
+
+  changeTime = millis();
+}
+
+
+// CONTAGEM REGRESSIVA
+void contagemRegressiva() {
+
+  for(int numero = 5; numero >= 0; numero--) {
+
+    mostrarNumero(numero);
+
+    // Se estiver nos últimos 2 segundos
+    if(numero <= 2) {
+
+      //4 delays de 250 para não fazer uma contagem mais rápida
+      //se usar 2 delays de 500 o buzzer e o led verde vão piscar poucas vezes
+      digitalWrite(pedGreen, HIGH);
+      tone(buzzer, 500);
+      delay(250);
+
+      digitalWrite(pedGreen, LOW);
+      noTone(buzzer);
+      delay(250);
+      
+      digitalWrite(pedGreen, HIGH);
+      tone(buzzer, 500);
+      delay(250);
+
+      digitalWrite(pedGreen, LOW);
+      noTone(buzzer);
+      delay(250);
+
+    } else {
+      delay(1000);    
+    }
+   desligarDisplay(); 
+  }
+}
+
+
+// MOSTRAR NÚMERO NO DISPLAY
+void mostrarNumero(int numero) {
+
+  for(int led = 0; led < 7; led++) {
+    digitalWrite(segmentos[led], digitos[numero][led]);
+  }
+}
+
+
+//Desligar display
+void desligarDisplay() {
+  for(int i = 0; i < 7; i++) {
+    digitalWrite(segmentos[i], LOW);
+  }
+}
